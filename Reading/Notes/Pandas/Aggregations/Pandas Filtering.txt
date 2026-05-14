@@ -1,0 +1,93 @@
+#################### Basic Filtering #####################
+
+1> Filter for one particular column val
+
+fortune_tech_df = fortune_df.loc[fortune_df["sector"] == "Technology"]
+
+loc returns only rows for which this condition is true
+
+2> Combining filtering and column selection in just one line of code
+
+fortune_df.loc[
+    fortune_df["sector"] == "Technology",
+    ["company", "sector"]
+]
+
+3> Using Boolean masks
+Basically true fals pandas series sent to loc and we only choose rows where the condition is true
+
+filtering_condition = fortune_df["sector"] == "Technology"
+
+fortune_tech_df = fortune_df.loc[filtering_condition]
+
+4> Partial string matches for text data, like part of substring matches etc.
+
+food_companies_df = fortune_df.loc[fortune_df['sector'].str.contains('Food')]
+
+str.contains(), you can also use:
+
+str.startswith(): matches text that begins with a specific prefix
+str.endswith(): matches text that ends with a specific suffix
+
+
+5> Finding Missing Values rows
+missing_employees_df = fortune_df.loc[fortune_df['employees'].isna()]
+
+6> Find rows which do have values
+has_employees_df = fortune_df.loc[fortune_df['employees'].notna()]
+
+
+
+################### Multiple Filtering ########################3
+
+1> Multiple Conditions (AND)
+
+fortune_tech_founders_df = fortune_df.loc[
+    (fortune_df['sector'] == "Technology") &
+    (fortune_df['is_founder_ceo'] == True)]
+
+2> Multiple Conditions (OR)
+
+temp_df = fortune_df.loc[
+  (fortune_df['rank_change'] > 10) | (fortune_df['rank_change'] < -10)
+]
+
+3> Check if a value is in a list for a column
+fortune_df.loc[
+    fortune_df['sector'].isin(["Technology", "Automotive", "Energy", "Financials"])
+]
+
+
+###### Advanced filtering #####################3
+
+1> Get top k for a particular col val
+top_10_profit_df = fortune_df.nlargest(10, 'profit')
+
+2> Get smallest k
+temp_df = fortune_df.nsmallest(5, 'employees')
+
+
+3> Make cols with Booleans for mode code clarity
+fortune_top10_df = fortune_df.loc[
+    fortune_df["is_top10"]
+    & (fortune_df["is_profitable"] | fortune_df["is_rank_improved"])
+]
+
+4> Calculations inside filtering conditions
+fortune_high_margin_df = fortune_df.loc[
+    (fortune_df["rank_2025"] <= 10)
+    | (fortune_df["profit"] / fortune_df["revenue"] > 0.25)
+]
+
+5> Compliment using not operators
+fortune_low_margin_df = fortune_df.loc[
+    ~((fortune_df["rank_2025"] <= 10)
+      | (fortune_df["profit"] / fortune_df["revenue"] > 0.25))
+]
+
+6> Check if inversion worked correctly
+ complement_count + original_count = total_count
+
+
+
+

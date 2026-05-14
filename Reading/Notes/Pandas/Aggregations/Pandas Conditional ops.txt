@@ -1,0 +1,125 @@
+############ Conditional transformation ################3
+
+1> np.where use
+
+flights_df['distance_km'] = np.where(
+    flights_df['distance_unit'] == 'miles',
+    flights_df['distance'] * 1.60934,
+    flights_df['distance']
+)
+
+The function takes three arguments:
+
+Condition: A boolean expression that evaluates to True or False for each row (distance_unit == 'miles')
+Value if True: What to assign when the condition is True (multiply distance by 1.60934)
+Value if False: What to assign when the condition is False (keep distance unchanged)
+
+
+2> Multiple Conditionals
+conditions = [flights_df['delay'] <= -5,
+              flights_df['delay'] < 5,
+              flights_df['delay'] >= 5]
+
+outcomes = ['Early', 'On time', 'Late']
+
+flights_df['delay_status'] = np.select(conditions, outcomes, default = 'Unknown)
+
+The structure has three key components:
+
+conditions: A list of boolean expressions—one for each category we want to create
+outcomes: A list of values corresponding to each condition (must have the same number of elements)
+default: The value to use when no condition matches (here we use 'Unknown' as a safety net)
+np.select() evaluates conditions in order for each row. The first condition that's True determines the outcome, and the remaining conditions are skipped.
+
+
+###################### Conditional Aggregation##############################
+
+1> flight_df = flights_df.loc[flights_df['flight_status'] == "arrived"]
+
+flight_df = flight_df.groupby("airline").agg(
+  average_delay = ('delay', 'mean')
+).reset_index()
+
+flight_df
+
+2> Query method, helpful when chaining together
+
+arrived_flights_df = flights_df[flights_df['flight_status'] == 'arrived']
+
+airline_summary_df = (
+    arrived_flights_df
+    .groupby('airline')
+    .agg(avg_delay=('delay', 'mean'))
+    .query('avg_delay > 5')
+) so filter if average delay > 5 then only include those rows in the answers
+
+3> Specific conditional aggregation
+airline_summary_df = (
+    arrived_flights_df
+    .groupby('airline')
+    .agg(
+        avg_delay=('delay', 'mean'),
+        avg_delay_delayed=('delay', lambda x: x[x > 5].mean())
+    )
+)
+
+Lambda same as :
+def avg_long_haul(x):
+    return x[x > 3000].mean()
+
+What is x?
+
+Inside groupby().agg(), pandas passes each group’s distance column into the function.
+
+So:
+
+x = all distances for ONE plane_type
+
+Example:
+x = [500, 1200, 3500, 4200] so series object or df and then we apply conditional and then sum
+
+
+4> Using .apply()
+
+airline_summary_df = (
+    arrived_flights_df
+    .groupby('airline')
+    .apply(lambda x: pd.Series({
+        'avg_delay': x['delay'].mean(),
+        'avg_delay_delayed': x.loc[x['delay'] > 5, 'delay'].mean(),
+        'total_passengers': x['passengers'].sum(),
+        'passengers_delayed': x.loc[x['delay'] > 5, 'passengers'].sum()
+    }), include_groups=False)
+)
+
+Here's how the pattern works:
+
+apply(): gives us the full grouped DataFrame (not just one column)
+lambda x: receives that grouped DataFrame
+x.loc[x['delay'] > 5, 'passengers']: filters rows based on delay condition, then selects the passengers column
+.sum(): aggregates the selected column
+pd.Series({}): creates output with named columns
+include_groups=False: prevents the grouping column from being passed into the lambda—without it, pandas includes the grouping column which can cause warnings
+
+5> Arithmetic with apply
+airline_summary_df = (
+    flights_df
+    .groupby('airline')
+    .apply(lambda x: pd.Series({
+        'total_flights': x['flight_id'].count(),
+         'cancellation_rate': 100*
+      x.loc[x['flight_status'] == 'canceled', 'flight_status'].count() 
+      / x['flight_status'].count()
+    }), include_groups=False)
+)
+
+6> Grouping everything together
+flight_df = (
+  flight_df.groupby("airline")
+  .apply(lambda x: pd.Series({
+    'flights': x['flight_id'].count(),
+    'flights_longhaul': x.loc[x['distance'] > 3000, 'flight_id'].count(),
+    'average_fuel_efficiency': x['fuel_efficiency'].mean(),
+    'average_fuel_efficiency_longhaul': x.loc[x['distance'] > 3000, 'fuel_efficiency'].mean(),
+  }), include_groups = False).query('flights > 50')
+)

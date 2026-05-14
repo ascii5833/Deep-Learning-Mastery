@@ -1,0 +1,96 @@
+#1> Grouped aggregations
+
+summary_df = trips_df.groupby('ride_type').agg(
+  total_fare = ('fare', 'sum'),
+  avg_fare = ('fare', 'mean'),
+  total_trips = ('trip_id', 'nunique')
+).reset_index()
+
+summary_df
+
+Output format:
+ride_type	total_fare	avg_fare	total_trips
+0	Economy	4878.13	12.134651741293533	402
+1	Plus	5037.14	12.720050505050505	396
+2	Premium	4821.33	12.205898734177214	395
+3	XL	5623.63	12.58082774049217	447
+
+
+# 2> Split-Apply-Combine
+
+Split-Apply-Combine Process
+
+Grouped aggregation works through three steps:
+
+Split: Data is divided into groups based on unique values in the grouping column
+Apply: Summary operations are performed on each group separately
+Combine: Results from each group are assembled into a single summary table
+This process happens automatically behind the scenes when you use groupby().agg()
+
+# 3> Value Counts (frequency table for particular column)
+
+trips_df['ride_type'].value_counts()
+
+Output:
+	count
+ride_type	
+XL	447
+Economy	402
+Plus	396
+Premium	395
+
+for relative frequency distribution:
+trips_df['ride_type'].value_counts(normalize = True)
+
+
+# 4> Sort values (sort dataframe by values for a particular column)
+summary_df = summary_df.sort_values('trip_count', ascending = False)
+
+By default ascending
+
+
+# 5> Grouping and sorting in a single chain
+summary_df = trips_df.groupby('ride_type').agg(
+  unique_riders = ('rider_id', 'nunique')
+).reset_index().sort_values('unique_riders')
+
+summary_df
+
+
+###################### Multiple Column Aggregations ################################################3
+
+# 1> Drop Duplicates (Unique Combinations across columns)
+df[['location', 'category']].drop_duplicates()
+
+# 2> Grouping my multiple columns together
+
+summary_df = (
+    orders_df
+    .groupby(['location', 'category'])
+    .agg(
+        order_count=('order_id', 'count'),
+        user_count=('user_id', 'nunique'),
+        revenue=('amount', 'sum'),
+        avg_amount=('amount', 'mean'))
+    .reset_index()
+)
+
+Output: 
+location	category	order_count	user_count	revenue	avg_amount
+0	UK	Electronics	100	62	24006.25	240.0625
+1	UK	Fashion	210	124	29380.1	139.90523809523808
+2	UK	Grocery	10	2
+
+
+# 3> Order matters here
+if category is before location, first electronics categories will be grouped for all locations, then fashion and so-on
+
+#4> Multiple column sorting
+
+summary_df = summary_df.sort_values(
+    by=['location', 'revenue'],
+    ascending=[True, False]
+)
+
+by=['location', 'revenue'] — sort by location first, then revenue
+ascending=[True, False] — location ascending (alphabetical), revenue descending (highest first)

@@ -1,0 +1,5 @@
+Datasets/Semantic Seg
+Unet/Datasets/
+**/__pycache__/
+**/.venv/
+*.pth

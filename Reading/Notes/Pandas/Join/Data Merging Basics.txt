@@ -1,0 +1,13 @@
+#############################33
+1> Inner join
+
+Join based on only overlapping row vals for a particular column. Include only those rows in the result dataset where we have overlap.
+
+taxi_own_veh = taxi_owners.merge(taxi_veh, on='vid', suffixes=('_own','_veh'))
+
+# on -> dataset you are merging on
+#suffixes -> like in the resultant column know the common columns come from which dataset so some reading sugar
+
+
+
+2> One to many relationships

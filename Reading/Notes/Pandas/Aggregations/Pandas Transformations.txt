@@ -1,0 +1,18 @@
+1#> Creating new column by transforming original columns
+
+df["new_column"] = df["col1"] * df["col2"] - df["col3"]
+
+2#> Calculating ratios
+
+campaign_performance_df["pcvr"] = 100 * (
+        campaign_performance_df["paid_orders"] / campaign_performance_df["paid_sessions"]
+)
+
+
+
+############## Complex transformations ##########################3
+category_sales_df["margin_pot"] = (100 * category_sales_df["margin"] /
+                                   category_sales_df["margin"].sum())
+
+1> Rounding columns
+df["column"] = round(df["column"], 2)
